@@ -17,7 +17,7 @@
 #    You should have received a copy of the GNU General Public License
 #    along with Joypy.  If not see <http://www.gnu.org/licenses/>.
 #
-'''
+"""
 Pretty printing support.
 
 This is what does the formatting, e.g.:
@@ -27,9 +27,10 @@ This is what does the formatting, e.g.:
      23 18 . mul 99 add
        414 . 99 add
     414 99 . add
-       513 . 
+       513 .
 
-'''
+"""
+
 # (Kinda clunky and hacky.  This should be swapped out in favor of much
 # smarter stuff.)
 from __future__ import print_function
@@ -38,35 +39,33 @@ from .stack import expression_to_string, stack_to_string
 
 
 class TracePrinter(object):
+    def __init__(self):
+        self.history = []
 
-  def __init__(self):
-    self.history = []
+    def viewer(self, stack, expression):
+        """Pass this method as the viewer to joy() function."""
+        self.history.append((stack, expression))
 
-  def viewer(self, stack, expression):
-    '''Pass this method as the viewer to joy() function.'''
-    self.history.append((stack, expression))
+    def __str__(self):
+        return "\n".join(self.go())
 
-  def __str__(self):
-    return '\n'.join(self.go())
+    def go(self):
+        max_stack_length = 0
+        lines = []
+        for stack, expression in self.history:
+            stack = stack_to_string(stack)
+            expression = expression_to_string(expression)
+            n = len(stack)
+            if n > max_stack_length:
+                max_stack_length = n
+            lines.append((n, "%s . %s" % (stack, expression)))
+        return [  # Prefix spaces to line up '.'s.
+            (" " * (max_stack_length - length) + line) for length, line in lines
+        ]
 
-  def go(self):
-    max_stack_length = 0
-    lines = []
-    for stack, expression in self.history:
-      stack = stack_to_string(stack)
-      expression = expression_to_string(expression)
-      n = len(stack)
-      if n > max_stack_length:
-        max_stack_length = n
-      lines.append((n, '%s . %s' % (stack, expression)))
-    return [  # Prefix spaces to line up '.'s.
-      (' ' * (max_stack_length - length) + line)
-      for length, line in lines
-      ]
-
-  def print_(self):
-    try:
-      print(self)
-    except:
-      print_exc()
-      print('Exception while printing viewer.')
+    def print_(self):
+        try:
+            print(self)
+        except:
+            print_exc()
+            print("Exception while printing viewer.")

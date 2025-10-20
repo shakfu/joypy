@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-'''
+"""
 
 
 A dialect of Joy in Python.
@@ -49,12 +49,14 @@ Exports:
 
   repl(stack=(), dictionary=())
 
-'''
+"""
+
 from __future__ import print_function
+
 try:
-  input = raw_input
+    input = raw_input
 except NameError:
-  pass
+    pass
 from traceback import print_exc, format_exc
 from .parser import text_to_expression, ParseError, Symbol
 from .utils.stack import stack_to_string
@@ -62,64 +64,65 @@ from .utils.pretty_print import TracePrinter
 
 
 def joy(stack, expression, dictionary, viewer=None):
-  '''
-  Evaluate the Joy expression on the stack.
-  '''
-  while expression:
+    """
+    Evaluate the Joy expression on the stack.
+    """
+    while expression:
+        if viewer:
+            viewer(stack, expression)
 
-    if viewer: viewer(stack, expression)
+        term, expression = expression
+        if isinstance(term, Symbol):
+            term = dictionary[term]
+            stack, expression, dictionary = term(stack, expression, dictionary)
+        else:
+            stack = term, stack
 
-    term, expression = expression
-    if isinstance(term, Symbol):
-      term = dictionary[term]
-      stack, expression, dictionary = term(stack, expression, dictionary)
-    else:
-      stack = term, stack
-
-  if viewer: viewer(stack, expression)
-  return stack, expression, dictionary
+    if viewer:
+        viewer(stack, expression)
+    return stack, expression, dictionary
 
 
 def run(text, stack, dictionary, viewer=None):
-  '''
-  Return the stack resulting from running the Joy code text on the stack.
-  '''
-  try:
-    expression = text_to_expression(text)
-  except ParseError as err:
-    print('Err:', err.message)
-    return stack, (), dictionary
-  return joy(stack, expression, dictionary, viewer)
+    """
+    Return the stack resulting from running the Joy code text on the stack.
+    """
+    try:
+        expression = text_to_expression(text)
+    except ParseError as err:
+        print("Err:", str(err))
+        return stack, (), dictionary
+    return joy(stack, expression, dictionary, viewer)
 
 
 def repl(stack=(), dictionary=None):
-  '''
-  Read-Evaluate-Print Loop
+    """
+    Read-Evaluate-Print Loop
 
-  Accept input and run it on the stack, loop.
-  '''
-  if dictionary is None:
-    dictionary = {}
-  try:
-    while True:
-      print()
-      print(stack_to_string(stack), '<-top')
-      print()
-      try:
-        text = input('joy? ')
-      except (EOFError, KeyboardInterrupt):
-        break
-      viewer = TracePrinter()
-      try:
-        stack, _, dictionary = run(text, stack, dictionary, viewer.viewer)
-      except:
-        exc = format_exc() # Capture the exception.
-        viewer.print_() # Print the Joy trace.
-        print('-' * 73)
-        print(exc) # Print the original exception.
-      else:
-        viewer.print_()
-  except:
-    print_exc()
-  print()
-  return stack
+    Accept input and run it on the stack, loop.
+    """
+    if dictionary is None:
+        dictionary = {}
+    try:
+        while True:
+            print()
+            print(stack_to_string(stack), "<-top")
+            print()
+            try:
+                text = input("joy? ")
+            except (EOFError, KeyboardInterrupt):
+                break
+            viewer = TracePrinter()
+            try:
+                stack, _, dictionary = run(text, stack, dictionary, viewer.viewer)
+            except:
+                exc = format_exc()  # Capture the exception.
+                viewer.print_()  # Print the Joy trace.
+                print("-" * 73)
+                print(exc)  # Print the original exception.
+            else:
+                viewer.print_()
+    except:
+        print_exc()
+    print()
+    return stack

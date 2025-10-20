@@ -17,7 +17,7 @@
 #    You should have received a copy of the GNU General Public License
 #    along with joy.py.  If not see <http://www.gnu.org/licenses/>.
 #
-'''
+"""
 
 
 § Stack
@@ -71,84 +71,89 @@ in this case "(head, tail)", and Python takes care of de-structuring the
 incoming argument and assigning values to the names.  Note that Python
 syntax doesn't require parentheses around tuples used in expressions
 where they would be redundant.
-'''
+"""
 
 
 def list_to_stack(el, stack=()):
-  '''Convert a list (or other sequence) to a stack.
+    """Convert a list (or other sequence) to a stack.
 
-  [1, 2, 3] -> (1, (2, (3, ())))
+    [1, 2, 3] -> (1, (2, (3, ())))
 
-  '''
-  for item in reversed(el):
-    stack = item, stack
-  return stack
+    """
+    for item in reversed(el):
+        stack = item, stack
+    return stack
 
 
 def iter_stack(stack):
-  '''Iterate through the items on the stack.'''
-  while stack:
-    item, stack = stack
-    yield item
+    """Iterate through the items on the stack."""
+    while stack:
+        item, stack = stack
+        yield item
 
 
 def stack_to_string(stack):
-  '''
-  Return a "pretty print" string for a stack.
+    """
+    Return a "pretty print" string for a stack.
 
-  The items are written right-to-left:
+    The items are written right-to-left:
 
-  (top, (second, ...)) -> '... second top'
-  '''
-  f = lambda stack: reversed(list(iter_stack(stack)))
-  return _to_string(stack, f)
+    (top, (second, ...)) -> '... second top'
+    """
+    f = lambda stack: reversed(list(iter_stack(stack)))
+    return _to_string(stack, f)
 
 
 def expression_to_string(expression):
-  '''
-  Return a "pretty print" string for a expression.
+    """
+    Return a "pretty print" string for a expression.
 
-  The items are written left-to-right:
+    The items are written left-to-right:
 
-  (top, (second, ...)) -> 'top second ...'
-  '''
-  return _to_string(expression, iter_stack)
+    (top, (second, ...)) -> 'top second ...'
+    """
+    return _to_string(expression, iter_stack)
 
 
 def _to_string(stack, f):
-  if isinstance(stack, long): return str(stack).rstrip('L')
-  if not isinstance(stack, tuple): return repr(stack)
-  if not stack: return ''  # shortcut
-  return ' '.join(map(_s, f(stack)))
+    if isinstance(stack, int):
+        return str(stack).rstrip("L")
+    if not isinstance(stack, tuple):
+        return repr(stack)
+    if not stack:
+        return ""  # shortcut
+    return " ".join(map(_s, f(stack)))
 
 
 _s = lambda s: (
-  '[%s]' % expression_to_string(s) if isinstance(s, tuple)
-  else str(s).rstrip('L') if isinstance(s, long)
-  else repr(s)
-  )
+    "[%s]" % expression_to_string(s)
+    if isinstance(s, tuple)
+    else str(s).rstrip("L")
+    if isinstance(s, int)
+    else str(s)
+)
 
 
 def pushback(quote, expression):
-  '''Concatinate quote onto expression.
+    """Concatinate quote onto expression.
 
-  In joy [1 2] [3 4] would become [1 2 3 4].
-  '''
-  return list_to_stack(list(iter_stack(quote)), expression)
+    In joy [1 2] [3 4] would become [1 2 3 4].
+    """
+    return list_to_stack(list(iter_stack(quote)), expression)
 
 
 def pick(s, n):
-  '''
-  Find the nth item on the stack. (Pick with zero is the same as "dup".)
-  '''
-  if n < 0:
-    raise ValueError
-  while True:
-    try:
-      item, s = s
-    except ValueError:
-      raise IndexError
-    n -= 1
+    """
+    Find the nth item on the stack. (Pick with zero is the same as "dup".)
+    """
     if n < 0:
-      break
-  return item
+        raise ValueError
+    while True:
+        try:
+            item, s = s
+        except ValueError:
+            raise IndexError
+        n -= 1
+        if n < 0:
+            break
+    return item
